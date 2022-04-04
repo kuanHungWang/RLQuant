@@ -68,32 +68,15 @@ if __name__ == '__main__':
     actor = get_pretrain_actor(env, n_hidden, n_samples)
     env = VanillaEnv(process, days, S0)
     print("pretrain critic")
-    critic, _ = get_pretrain_critic(env, actor, n_hidden, N_OBSERVATION, n_samples)
+    critic, _ = get_pretrain_critic(env, actor, n_hidden, N_OBSERVATION, n_samples, epoc=5)
     critic_target = get_critic(n_hidden, N_OBSERVATION)
     critic_target.set_weights(critic.get_weights())
     optimizer_critic = tf.keras.optimizers.Adam(0.002)
     optimizer_actor = tf.keras.optimizers.Adam(0.002)
-    learn_per_step = 3
+    learn_per_step = 1
     buffer = Buffer(1024, N_OBSERVATION)
-    """    buffer2=EpisodeBuffer(10,65, N_OBSERVATION)
-        for _ in range(11):
-            while True:
-                data = env.step(0.5)
-                done = data[3]
-                buffer2.store(data, env.t-1)
-                if done:
-                    env.reset()
-                    break"""
-    """    for _ in range(100):
-            data = env.step(0.5)
-            done = data[3]
-            buffer.store(data)
-            if done:
-                env.reset()
-        batch = buffer.sample(20)"""
-    # S_t0, S_t1, reward, terminated, can_early_exercise, payoff, dS=batch
     batch_size = 32
-    tau = 0.2
+    tau = 0.1
     df = env.df()
     mu = env.mu()
     print("train like actor-critic")

@@ -1,9 +1,6 @@
 import numpy as np
 from numpy import exp
 
-N_OBSERVATION = 5
-from dataclasses import dataclass
-
 
 class BlackProcess:
     def __init__(self, S0, r, sigma, n):
@@ -56,11 +53,6 @@ def MCCall(strike, n, m, r=0.01, sigma=0.9, S0=10):
     return np.mean(payoff) * df
 
 
-@dataclass
-class Option:
-    strike: float
-    days: int
-    isCall: bool = True
 
 
 class VanillaEnv():
@@ -105,7 +97,7 @@ class VanillaEnv():
         tenor = (self.tenor - t) / 365
 
         obs = np.array([moneyness, moneyness ** 2, tenor, tenor ** 2, moneyness * tenor])
-        assert len(obs) == N_OBSERVATION
+        assert len(obs) == self.n_observation
         return obs
 
     def step(self, action):

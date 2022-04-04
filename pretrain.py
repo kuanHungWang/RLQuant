@@ -6,11 +6,6 @@ from model import get_actor, get_critic, get_pretrain_model
 from replay_buffer import EpisodeBuffer
 
 
-def single_sample(dataset, i):
-    observations, dS, payoff = dataset
-    return observations[i:i + 1, :, :], dS[i:i + 1, :, :], payoff[i:i + 1]
-
-
 def gather_episode_wise(env, buffer: EpisodeBuffer, episodes, action=0.5):
     for i in range(episodes):
         env.reset()
