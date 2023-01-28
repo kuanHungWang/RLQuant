@@ -3,8 +3,7 @@ import tensorflow as tf
 
 from Envs import BlackProcess, VanillaEnv
 from blackscholes import call, delta
-from model import get_critic
-from pretrain import get_pretrain_actor, get_pretrain_critic
+from model import get_critic, get_actor
 from replay_buffer import Buffer
 
 N_OBSERVATION = VanillaEnv.n_observation
@@ -62,15 +61,11 @@ if __name__ == '__main__':
     n_hidden = [64, 64]
     process = BlackProcess(S0, r, vol, days)
     N_OBSERVATION = VanillaEnv.n_observation
-    env = VanillaEnv(process, days, strike)
-    print("pretrain actor")
-    actor = get_pretrain_actor(env, n_hidden, n_samples)
     env = VanillaEnv(process, days, S0)
-    print("pretrain critic")
-    critic, _ = get_pretrain_critic(env, actor, n_hidden, N_OBSERVATION, n_samples, epoc=5)
-
+    critic = get_critic(n_hidden, N_OBSERVATION)
     critic_target = get_critic(n_hidden, N_OBSERVATION)
     critic_target.set_weights(critic.get_weights())
+    actor = get_actor(n_hidden, N_OBSERVATION)
     optimizer_critic = tf.keras.optimizers.Adam(0.002)
     optimizer_actor = tf.keras.optimizers.Adam(0.002)
     learn_per_step = 1
@@ -79,7 +74,6 @@ if __name__ == '__main__':
     tau = 0.1
     df = env.df()
     mu = env.mu()
-    print("train like actor-critic")
     for eps in range(50):
         print("episode {}".format(eps))
         epsode_reward = 0
@@ -106,4 +100,3 @@ if __name__ == '__main__':
     bs_call = call(S0, S0, days / 365, r, 0, vol)
     bs_delta = delta(S0, S0, days / 365, r, 0, vol, True)
     print("by black-scholes model: \n option value: {:5.4f}, delta: {:5.4f}".format(bs_call, bs_delta))
-

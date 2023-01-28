@@ -92,13 +92,19 @@ class VanillaEnv():
         """
         S_K = self.St(t) / self.strike
         moneyness = max(0, S_K)
-
         t = self.t if t is None else t
         tenor = (self.tenor - t) / 365
-
         obs = np.array([moneyness, moneyness ** 2, tenor, tenor ** 2, moneyness * tenor])
         assert len(obs) == self.n_observation
         return obs
+
+    def bs_observation(self):
+        return self.St(), self.strike, (self.tenor - self.t) / 365, self.process.r, 0, self.process.sigma
+
+    def to_observation(cls, s, k, t):
+        S_K = s / k
+        moneyness = max(0, S_K)
+        return np.array([moneyness, moneyness ** 2, t, t ** 2, moneyness * t])
 
     def step(self, action):
         """
@@ -121,3 +127,25 @@ class VanillaEnv():
         :return: option payoff if exercise now, regardless it can be exercised, equivalent to moneyless
         """
         return max(0, self.St(t) - self.strike)
+
+
+if __name__ == '__main__':
+    env = VanillaEnv()
+    env.reset()
+    env.t = 0
+    pl = 0
+    v = call(*env.bs_observation())
+    pl += v
+    old_action = 0
+    cash = v
+    while True:
+        # action=delta(*env.bs_observation(), True)
+        action = actor(env.observation()[np.newaxis, :]).numpy()[0, 0]
+        cash += (action - old_action) * env.St()
+        S_t0, S_t1, reward, done, can_early_exercise, payoff, dS = env.step(action)
+        v += dS * action
+        v += cash * env.process.r / 365
+        old_action = action
+        if done:
+            break
+    print("{:5.4f}, {:5.4f}".format(v, env.payoff()))

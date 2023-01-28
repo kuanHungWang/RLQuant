@@ -37,22 +37,6 @@ def gather_data_pretrain_critic(pretrain_actor, env, n_samples):
     return Y_hedge, buffer
 
 
-# build pretrain model of actor
-"""
-def get_pretrain_model(n_hidden):
-    obs_input = layers.Input((days, VanillaEnv.n_observation))
-    dS_input = layers.Input((days, 1))
-    x=obs_input
-    for l in n_hidden:
-        x = layers.Dense(l, activation='relu')(x)
-    x = layers.Dense(1, activation='tanh')(x)
-    pretrain_actor = tf.keras.Model(obs_input, x)
-    sum_hedge_pl = tf.reduce_sum(dS_input * x, axis=(1, 2))
-    pretrainer = tf.keras.Model((obs_input, dS_input), sum_hedge_pl)
-    return pretrain_actor, pretrainer
-"""
-
-
 def get_pretrain_actor(env, n_hidden, n_samples, epoch=12):
     N_OBSERVATION = env.n_observation
     days = env.tenor
