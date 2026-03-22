@@ -1,18 +1,16 @@
 # RLQuant: Reinforcement Learning for Options Hedging
 
-A reinforcement learning framework that learns optimal hedging strategies for European vanilla options. This project compares learned hedging strategies against the theoretical Black-Scholes model.
+A reinforcement learning framework that use actor-critic reinforcement learning to learns optimal hedging strategies and valuation model at the same time for European vanilla options. It extend and analogize the replication framework of Black-Scholes-Merton into a reinforcement learning framework.
 
 ## Overview
 
-**RLQuant** uses actor-critic reinforcement learning to solve the options hedging problem:
+**RLQuant** uses modified actor-critic reinforcement learning to solve the options hedging problem:
 - **Actor**: Learns the optimal delta (hedging position) as a function of market state
 - **Critic**: Learns the option value as a function of market state
-- **Environment**: Simulates geometric Brownian motion stock price paths with vanilla options
 
-The key innovation is using pretraining with domain knowledge:
-1. **Actor Pretraining**: Initialized with Black-Scholes delta hedging
-2. **Critic Pretraining**: Initialized with Monte Carlo option valuation
-3. **Fine-tuning**: Actor-critic learning via experience replay
+The key innovation is using pretraining method with domain knowledge to speed up the convergence, both use simple supervised learning method:
+1. **Actor Pretraining**: Since we don't have a good critic yet, we train without critic(valuation) model by the fact that the sum of delta hedge p/l should close to final payoff, if the initial valuation is close to 0.(By choosing a short term out of money option)
+2. **Critic Pretraining**: After we have a decent actor(delta), we can have proxy of target by substracting delta p/l from next period valuation, starting from final payoff.
 
 ## Project Structure
 
@@ -48,13 +46,11 @@ RLQuant/
 
 ### Pretraining (`pretrain.py`)
 **Actor Pretraining**:
-- Collects episodes with fixed action (0.5)
-- Trains network to maximize cumulative P/L from delta hedging
-- Loss: MSE between network output and optimal Black-Scholes delta
+- Pre-train network of Actor with finacl payoff of short term, out-off money option.
 
 **Critic Pretraining**:
-- Uses pretrained actor to generate episode data
-- Computes target option values via backward induction (Monte Carlo style)
+- Uses pretrained actor to generate delta p/l
+- Use delta p/l to get proxy target of each periods valuation.
 - Loss: MSE between predicted and target values
 
 ### Training (`main.py`)
